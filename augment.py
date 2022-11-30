@@ -28,7 +28,7 @@ for i in range(0,30):
     #plt.yticks([]) # y축 눈금
     #plt.show()
 
-    for j in range(1000):
+    for j in range(100):
         #Augment an image
         transformed = transform(image=image)
         transformed_image = transformed["image"]
@@ -39,4 +39,4 @@ for i in range(0,30):
         
         im = Image.fromarray(transformed_image)
         im = im.resize((100,100))
-        im.save('./data/train/' + str(i) + '/' + str(j) + '.png')
+        im.save('./data/val/' + str(i) + '/' + str(j) + '.png')
