@@ -34,7 +34,7 @@ if __name__ == '__main__':
     parser.add_argument('-sd', '--save_dir', type=str, default='./test/result/')
     parser.add_argument('-m', '--model', type=str, default='tf_efficientnet_b0')
 
-    parser.add_argument('-ckpt', '--checkpoint', type=str, default='./ckpt_best_try1.pt')
+    parser.add_argument('-ckpt', '--checkpoint', type=str, default='./savedir/tf_efficientnet_b0_1130_223002/ckpt_best.pt')
     parser.add_argument('-bs', '--batch_size', type=int, default=3)
     parser.add_argument('-is', '--img_size', type=int, default=100)
 
@@ -50,6 +50,7 @@ if __name__ == '__main__':
     label_encoder = {key:idx for idx, key in enumerate(label_description)}
 
     test_data = sorted(glob(f'{os.path.dirname(args.data_dir)}/*.jpg'))
+    #pdb.set_trace()
     #####################
 
     #### LOAD MODEL ####
@@ -71,12 +72,24 @@ if __name__ == '__main__':
     print('> START INFERENCE ')
     preds, img_names = test_no_label(model, test_loader)
     preds = np.array(preds)
+
+    P = np.argsort(preds, axis=1)
+    rank1 = P[:,-1]
+    rank2 = P[:,-2]
+    rank3 = P[:,-3]
+  #  pdb.set_trace()
+
     val = np.max(preds, axis=1)
-    preds = np.argmax(preds, axis=1)
+   # preds = np.argmax(preds, axis=1)
+
     submission = pd.DataFrame()
     submission['image_name'] = img_names
-    submission['label'] = preds
+    #submission['label'] = preds
     submission['val'] = val
+    submission['rank1'] = rank1
+    submission['rank2'] = rank2
+    submission['rank3'] = rank3  
+
 
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)

@@ -89,10 +89,10 @@ if __name__ == '__main__':
     parser.add_argument('-dd', '--data_dir', type=str, default='/Users/user/ml/trafficsign/data/')
     parser.add_argument('-sd', '--save_dir', type=str, default='/Users/user/ml/trafficsign/savedir/')
     parser.add_argument('-m', '--model', type=str, default='tf_efficientnet_b0')
-    #parser.add_argument('-is', '--img_size', type=int, default=32)
+    parser.add_argument('-is', '--img_size', type=int, default=224)
     #parser.add_argument('-av', '--aug_ver', type=int, default=0)
     
-    parser.add_argument('-e', '--epochs', type=int, default=1)
+    parser.add_argument('-e', '--epochs', type=int, default=10)
     parser.add_argument('-bs', '--batch_size', type=int, default=32)
     parser.add_argument('-nw', '--num_workers', type=int, default=0)
 
@@ -123,16 +123,16 @@ if __name__ == '__main__':
     #{speedlimit20,0}, {speedlimit30,1}
     label_decoder = {val:key for key, val in label_encoder.items()}
     #[0~29]
-    train_data = sorted(glob(f'{os.path.join(args.data_dir, "train")}/*/*.png'))
+    train_data = sorted(glob(f'{os.path.join(args.data_dir, "train")}/*/*.jpg'))
     #1000 * 30 = 30000
-    val_data = sorted(glob(f'{os.path.join(args.data_dir, "val")}/*/*.png'))
+    val_data = sorted(glob(f'{os.path.join(args.data_dir, "val")}/*/*.jpg'))
     train_label = [data.split('/')[-2] for data in train_data]
     train_labels = [label_encoder[k] for k in train_label]
     val_label = [data.split('/')[-2] for data in val_data]
     val_labels = [label_encoder[k] for k in val_label]
     #pdb.set_trace()
     #####################
-
+    #pdb.set_trace()
     c_date, c_time = datetime.now().strftime("%m%d/%H%M%S").split('/')
     save_dir = os.path.join(args.save_dir, f'{args.model}_{c_date}_{c_time}')
     os.makedirs(save_dir)
@@ -180,17 +180,17 @@ if __name__ == '__main__':
             best_val_loss = min(best_val_loss, val_loss)
             best_val_acc = val_acc
 
-            for param_tensor in model.state_dict():
-                print(param_tensor, "\t", model.state_dict()[param_tensor].size())
-            for var_name in optimizer.state_dict():
-                print(var_name, "\t", optimizer.state_dict()[var_name])
+          #  for param_tensor in model.state_dict():
+          #      print(param_tensor, "\t", model.state_dict()[param_tensor].size())
+          #  for var_name in optimizer.state_dict():
+          #      print(var_name, "\t", optimizer.state_dict()[var_name])
             
-            #torch.save({'model_state_dict': model.state_dict(),
-            #            'optimizer_state_dict': optimizer.state_dict(),
-            #            'scheduler' : scheduler.state_dict(),
-            #            'epoch' : epoch,},
-            #            f'{save_dir}/ckpt_best.pt')
-            #print(f'> SAVED model ({epoch:02d}) at {save_dir}/ckpt_best.pt')
+            torch.save({'model_state_dict': model.state_dict(),
+                        'optimizer_state_dict': optimizer.state_dict(),
+                        'scheduler' : scheduler.state_dict(),
+                        'epoch' : epoch,},
+                        f'{save_dir}/ckpt_best.pt')
+            print(f'> SAVED model ({epoch:02d}) at {save_dir}/ckpt_best.pt')
 
         if args.scheduler in ['cos_base', 'cos']:
             scheduler.step()
