@@ -9,7 +9,7 @@ class ImageModel(nn.Module):
         self.model_name = model_name
         self.class_n = class_n
         self.mode = mode
-        self.encoder = timm.create_model(self.model_name, pretrained=False)
+        self.encoder = timm.create_model(self.model_name, pretrained=True)
         names = []
         modules = []
         for name, module in self.encoder.named_modules():

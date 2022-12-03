@@ -81,6 +81,9 @@ def valid(args, model, val_loader, criterion, epoch):
 
     batch_iter.close()
 
+    if args.wandb:
+        wandb.log({'valid_mean_loss': val_mean_loss, 'valid_mean_acc': val_mean_acc}, step=epoch)
+
     return val_mean_loss, val_mean_acc
 
     
@@ -90,31 +93,25 @@ if __name__ == '__main__':
     parser.add_argument('-sd', '--save_dir', type=str, default='/Users/user/ml/trafficsign/savedir/')
     parser.add_argument('-m', '--model', type=str, default='tf_efficientnet_b0')
     parser.add_argument('-is', '--img_size', type=int, default=224)
-    #parser.add_argument('-av', '--aug_ver', type=int, default=0)
     
     parser.add_argument('-e', '--epochs', type=int, default=10)
     parser.add_argument('-bs', '--batch_size', type=int, default=32)
     parser.add_argument('-nw', '--num_workers', type=int, default=0)
 
     parser.add_argument('-l', '--loss', type=str, default='ce', choices=['ce', 'focal', 'smoothing_ce'])
-    #parser.add_argument('-ls', '--label_smoothing', type=float, default=0.5)
     parser.add_argument('-ot', '--optimizer', type=str, default='adam',
                         choices=['adam', 'radam', 'adamw', 'adamp', 'ranger', 'lamb', 'adabound'])
     parser.add_argument('-lr', '--learning_rate', type=float, default=1e-3)
     parser.add_argument('-sc', '--scheduler', type=str, default='cos_base', choices=['cos_base', 'cos', 'cycle'])
     # wandb config:
-    parser.add_argument('--wandb', type=bool, default=False)
+    parser.add_argument('--wandb', type=bool, default=True)
 
     # 입력받은 인자값을 args에 저장
     args = parser.parse_args()
-    #args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    args.device = torch.device('mps') if torch.backends.mps.is_available() else 'cpu'
-    #args.device = 'cpu'
-    #print(f"device: {args.device}")
-    #scaler = torch.cuda.amp.GradScaler() if args.amp else None
-    #### SEED EVERYTHING ####
-    #seed_everything(args.seed)
-    #########################
+    args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    #args.device = torch.device('mps') if torch.backends.mps.is_available() else 'cpu'
+
+    scaler = torch.cuda.amp.GradScaler() if args.amp else None
 
     #### SET DATASET ####
     label_description = sorted(os.listdir(os.path.join(args.data_dir, 'train')))
@@ -138,6 +135,11 @@ if __name__ == '__main__':
     os.makedirs(save_dir)
     #### SET WANDB ####
     run = None
+    if args.wandb:
+        wandb_api_key = os.environ.get('WANDB_API_KEY')
+        wandb.login(key=wandb_api_key)
+        run = wandb.init(project='K-trafficsign', name=f'{args.model}_{c_date}_{c_time}')
+        wandb.config.update(args)
     ###################
 
     #### LOAD DATASET ####
