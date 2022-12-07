@@ -8,14 +8,16 @@ from dataset import TrafficSign
 from torch.utils.data import DataLoader
 from models import ImageModel
 from tqdm import tqdm
-import wandb
+#import wandb
 from datetime import datetime
+from utils import score_function
 
 def train(args, model, train_loader, criterion, optimizer, scheduler, epoch):
     model.train()
     total_train_loss = 0
     total_train_score = 0
     batch_iter = tqdm(enumerate(train_loader), desc='Training', total=len(train_loader), ncols=120)
+   # pdb.set_trace()
     for batch_idx, batch_item in batch_iter:
         #pdb.set_trace()
         optimizer.zero_grad()
@@ -89,22 +91,23 @@ def valid(args, model, val_loader, criterion, epoch):
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-dd', '--data_dir', type=str, default='/Users/user/ml/trafficsign/data/')
-    parser.add_argument('-sd', '--save_dir', type=str, default='/Users/user/ml/trafficsign/savedir/')
-    parser.add_argument('-m', '--model', type=str, default='tf_efficientnet_b0')
+    parser.add_argument('-dd', '--data_dir', type=str, default='D:\\result\\result\\data\\')
+    parser.add_argument('-sd', '--save_dir', type=str, default='C:/Users\Moon/trafficsign/KoreanTrafficsign-Classifier/savedir')
+    parser.add_argument('-m', '--model', type=str, default='convnext_tiny')
     parser.add_argument('-is', '--img_size', type=int, default=224)
     
-    parser.add_argument('-e', '--epochs', type=int, default=10)
+    parser.add_argument('-e', '--epochs', type=int, default=20)
     parser.add_argument('-bs', '--batch_size', type=int, default=32)
     parser.add_argument('-nw', '--num_workers', type=int, default=0)
 
     parser.add_argument('-l', '--loss', type=str, default='ce', choices=['ce', 'focal', 'smoothing_ce'])
     parser.add_argument('-ot', '--optimizer', type=str, default='adam',
                         choices=['adam', 'radam', 'adamw', 'adamp', 'ranger', 'lamb', 'adabound'])
-    parser.add_argument('-lr', '--learning_rate', type=float, default=1e-3)
+    parser.add_argument('-lr', '--learning_rate', type=float, default=1e-4)
     parser.add_argument('-sc', '--scheduler', type=str, default='cos_base', choices=['cos_base', 'cos', 'cycle'])
     # wandb config:
-    parser.add_argument('--wandb', type=bool, default=True)
+    parser.add_argument('--amp', type=bool, default=True)
+    parser.add_argument('--wandb', type=bool, default=False)
 
     # 입력받은 인자값을 args에 저장
     args = parser.parse_args()
@@ -123,11 +126,12 @@ if __name__ == '__main__':
     train_data = sorted(glob(f'{os.path.join(args.data_dir, "train")}/*/*.jpg'))
     #1000 * 30 = 30000
     val_data = sorted(glob(f'{os.path.join(args.data_dir, "val")}/*/*.jpg'))
-    train_label = [data.split('/')[-2] for data in train_data]
+    train_label = [data.split('\\')[-2] for data in train_data]
     train_labels = [label_encoder[k] for k in train_label]
-    val_label = [data.split('/')[-2] for data in val_data]
+   # pdb.set_trace() 
+    val_label = [data.split('\\')[-2] for data in val_data]
     val_labels = [label_encoder[k] for k in val_label]
-    #pdb.set_trace()
+
     #####################
     #pdb.set_trace()
     c_date, c_time = datetime.now().strftime("%m%d/%H%M%S").split('/')
